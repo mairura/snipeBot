@@ -5,6 +5,7 @@ config();
 import { uniswapRouterAddress } from "../ProcessTxns/process";
 import { overloads } from "../Interface/interface";
 import { ethers } from "ethers";
+import { send_message } from "../Telegram/bot";
 
 const wallet_address = process.env.WALLET_ADDRESS;
 
@@ -32,22 +33,25 @@ export const approve = async (token: string, overloads: overloads) => {
 //Implementing the buy function
 export const swapExactETHForTokens = async (
   amountOutMin: number,
-  path: string[],
+  path: Array<string>,
   EthAmount: number,
   overloads: overloads
 ) => {
   try {
-    console.log("swapExactETHForTokens");
+    console.log("Function swapExactETHForTokens");
     let value: any = toHex(EthAmount);
     overloads.value = value;
+    console.log("Value for swapExactETHForTokens:", value);
 
     const deadline = Math.floor(Date.now() / 1000) + 60 * 2;
+    console.log("Deadline in swapExactETHForTokens:", deadline);
 
     //Buy transaction
     const tx = await smartContract.swapExactETHForTokens(
       toHex(amountOutMin),
       path,
       wallet_address,
+      deadline,
       overloads
     );
 
@@ -55,15 +59,17 @@ export const swapExactETHForTokens = async (
     console.log("txHash:", tx.hash);
 
     let token = path[path.length - 1];
+    console.log("Token path", token);
+
     let message = `Successfully bought token`;
     message += `\nYou Successfully bought https://rinkeby.etherscan.io/token/${token} token`;
     message += `\nHere is the txn hash: https://rinkeby.etherscan.io/tx/${tx.hash}`;
 
     //Telegram bot notification
-    // await send_message(message);
+    await send_message(message);
   } catch (error: any) {
     console.log("Error in swapExactETHForTokens Function", error.message);
-    return { success: false, data: `${error}` };
+    return { success: false, data: `Transaction error ${error}` };
   }
 };
 

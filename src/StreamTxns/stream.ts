@@ -15,7 +15,6 @@ const streamData = async () => {
   const txnData = await provider.on("pending", async (txHash) => {
     try {
       const transaction: any = await provider.getTransaction(txHash);
-      console.log(transaction);
 
       if (transaction) {
         const txDataContents: txnContents = {

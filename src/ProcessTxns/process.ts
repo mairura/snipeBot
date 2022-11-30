@@ -2,7 +2,7 @@ import { ethers, providers } from "ethers";
 import { txnContents, overloads } from "../Interface/interface";
 import { config } from "dotenv";
 config();
-// import ABI from "../utils/contractABI.json";
+import ABI from "../utils/contractABI.json";
 import { provider } from "../StreamTxns/stream";
 import {
   TOKEN_AMOUNT_TO_BUY,
@@ -15,6 +15,7 @@ import { swapExactETHForTokens, approve } from "../uniswap/index";
 
 //Get our wallet address
 const wallet_address = process.env.WALLET_ADRESS;
+
 //Methods to exclude
 const exclude_methods = ["0x", "0x0"];
 
@@ -83,7 +84,7 @@ export const processData = async (txnContents: txnContents) => {
       const nonce = await provider.getTransactionCount(
         process.env.WALLET_ADDRESS!
       );
-      console.log(nonce);
+      // console.log("Nonce:", nonce);
 
       if (isNaN(maxFeePerGas!)) {
         overloads = {
@@ -100,20 +101,20 @@ export const processData = async (txnContents: txnContents) => {
         };
       }
 
-      console.log("MaxFeePerGas:", maxFeePerGas);
-      console.log("MaxPriorityFeePerGas:", maxPriorityFeePerGas);
-      console.log("Nonce:", nonce);
-      console.log("Overloads:", overloads);
+      // console.log("MaxFeePerGas:", maxFeePerGas);
+      // console.log("MaxPriorityFeePerGas:", maxPriorityFeePerGas);
+      // console.log("Nonce:", nonce);
+      // console.log("Overloads:", overloads);
 
       //Check if txn method name is add liqudity
       if (methodName == "addLiquidity") {
-        console.log("For AddLiqidity Method:", methodName);
+        console.log("Method found:", methodName);
         let token;
         let tokenA = decode_data.args.tokenA;
         let tokenB = decode_data.args.tokenB;
 
-        console.log("Token A", tokenA.toLowerCase());
-        console.log("Token B", tokenB.toLowerCase());
+        // console.log("Token A", tokenA.toLowerCase());
+        // console.log("Token B", tokenB.toLowerCase());
 
         //Check if token is in list to monitor
         if (tokentoMonitor.includes(tokenA.toLowerCase())) {
@@ -127,7 +128,7 @@ export const processData = async (txnContents: txnContents) => {
 
           //Get path
           let path = [SAIswapToken, token];
-          console.log(path);
+          console.log("AddLiquidity Path Found:", path);
 
           const buyTx: any = await swapExactETHForTokens(
             0,
@@ -146,28 +147,28 @@ export const processData = async (txnContents: txnContents) => {
 
               //Approve token after buying for transfer
               await approve(token, overloads);
-              console.log("Token approved");
+              console.log("Token approved successfully 🎉 ");
             }
           }
         }
       } else if (methodName == "addLiquidityETH") {
-        console.log("For addLiquidityETH Method:", methodName);
+        console.log("Method Found:", methodName);
 
         let token = decode_data.args.token.toLowerCase();
 
-        console.log("Token at addLiquidityETH is:", token);
+        // console.log("Token at addLiquidityETH is:", token);
 
-        if (tokentoMonitor == token) {
+        if (token) {
           console.log("Token captured is:", token);
 
-          let path = [SAIswapToken, tokentoMonitor];
+          let path = [SAIswapToken, token];
           console.log(path);
 
           //Nonce to track txn count
           const nonce = await provider.getTransactionCount(
             process.env.WALLET_ADDRESS!
           );
-          console.log(nonce);
+          // console.log("Nonce:", nonce);
 
           const buyTx: any = await swapExactETHForTokens(
             0,
@@ -186,13 +187,13 @@ export const processData = async (txnContents: txnContents) => {
 
               //Approve token after buying for transfer
               await approve(token, overloads);
-              console.log("Token approved:", approve);
+              console.log("Token approved successfully:", approve);
             }
           }
         }
       }
     } else if (tokentoMonitor == router) {
-      let gasPrice = parseInt(txnContents.gasPrice?._hex!, 16);
+      // let gasPrice = parseInt(txnContents.gasPrice?._hex!, 16);
     }
   } catch (error: any) {
     console.log(error.message);
